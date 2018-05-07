@@ -71,8 +71,9 @@ public class Main {
 				otherArgs[2], TEMP_DIR, param);
 
 		if (success)
-			success = TweetSortMR.sort(new Job(conf, "sort"), TEMP_DIR, otherArgs[3],
-					cutoff);
+//			success = TweetSortMR.sort(new Job(conf, "sort"), TEMP_DIR, otherArgs[3],
+//					cutoff);
+			System.out.println("DONE");
 
 		System.exit(success ? 0 : 1);
 	}

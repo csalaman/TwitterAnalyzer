@@ -3,6 +3,7 @@ package cmsc433.p5;
 import java.io.IOException;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -30,16 +31,49 @@ public class TweetPopularityMR {
 	private static TrendingParameter trendingOn;
 
 	public static class TweetMapper
-	extends Mapper</* TODO: fill in the gericen type arguments */> {
-
+	extends Mapper<LongWritable,Text,Text,LongWritable/* TODO: fill in the generic type arguments */> {
+		
+		
 		@Override
-		public void map(/* Fill in type */ key, /* Fill in type */ value, Context context)
+		public void map(LongWritable key, Text value, Context context)
 				throws IOException, InterruptedException {
 			// Converts the CSV line into a tweet object
 			Tweet tweet = Tweet.createTweet(value.toString());
+			switch(trendingOn) {
+			case USER:
+				context.write((new Text(tweet.getUserScreenName())), new LongWritable(TWEET_SCORE));
 
-			// TODO: Your code goes here
-
+				if(tweet.wasRetweetOfUser()) {
+					context.write(new Text(tweet.getRetweetedUser()), new LongWritable(RETWEET_SCORE));
+				}
+				if(tweet.getMentionedUsers() != null) {
+					for (String mentionedUser : tweet.getMentionedUsers()) {
+						context.write(new Text(mentionedUser), new LongWritable(MENTION_SCORE));
+					}
+				}
+				break;
+			case TWEET:
+				context.write(new Text(tweet.getId().toString()), new LongWritable(1));
+				if(tweet.getRetweetedTweet()!=null) {
+					context.write(new Text(tweet.getRetweetedTweet().toString()), new LongWritable(RETWEET_SCORE));
+				}
+			
+				break;
+			case HASHTAG:
+				for (String hashtag : tweet.getHashtags()) {
+					context.write(new Text(hashtag), new LongWritable(1));
+				}
+				
+				break;
+			case HASHTAG_PAIR:
+				
+				
+				break;
+			default:
+					break;
+			}
+			
+			
 
 
 
@@ -48,10 +82,10 @@ public class TweetPopularityMR {
 	}
 
 	public static class PopularityReducer
-	extends Reducer</* TODO: fill in the generic type arguments */> {
+	extends Reducer<Text,IntWritable,Text,IntWritable/* TODO: fill in the generic type arguments */> {
 
 		@Override
-		public void reduce(/* Fill in type */ key, Iterable</* Fill in type */> values, Context context)
+		public void reduce(Text key, Iterable<IntWritable> values, Context context)
 				throws IOException, InterruptedException {
 
 			// TODO: Your code goes here
@@ -85,8 +119,19 @@ public class TweetPopularityMR {
 		job.setJarByClass(TweetPopularityMR.class);
 
 		// TODO: Set up map-reduce...
-
-
+		
+		
+		// Configure key output classes for the job classes
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(LongWritable.class);
+		
+		// Configure the Mapper and Reducer classes
+		job.setMapperClass(TweetPopularityMR.TweetMapper.class);
+		job.setReducerClass(TweetPopularityMR.PopularityReducer.class);
+		
+		// Configure Input format class
+		job.setInputFormatClass(FileInputFormat.class);
+		job.setOutputFormatClass(FileOutputFormat.class);
 
 
 

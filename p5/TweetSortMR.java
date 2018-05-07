@@ -33,7 +33,7 @@ public class TweetSortMR {
 	private static int CUTOFF = 10;
 
 	public static class SwapMapper
-	extends Mapper<Object, Text, /* TODO: fill in the rest of the generic type arguments */> {
+	extends Mapper<Object, Text, Object, Text/* TODO: fill in the rest of the generic type arguments */> {
 
 		String      id;
 		int         score;
@@ -55,10 +55,10 @@ public class TweetSortMR {
 	}
 
 	public static class SwapReducer
-	extends Reducer</* TODO: fill in the generic type arguments */> {
+	extends Reducer<Object ,Text,Object,Text/* TODO: fill in the generic type arguments */> {
 
 		@Override
-		public void reduce(/* fill in type */ key, Iterable</* fill in type */> values, Context context)
+		public void reduce(/* fill in type */Object key, Iterable</* fill in type */Text> values, Context context)
 				throws IOException, InterruptedException {
 
 			// TODO: Your code goes here
